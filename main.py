@@ -53,16 +53,6 @@ def run_bot():
             await bot_client.tree.sync()
             await message.channel.send(f"Command sync status: Complete")
 
-        # Greeting
-        if re.compile(r"^(good (morning|day|afternoon|evening)|greetings|hello).{1,2}duel.?(bot|machine|comp)",
-                      re.IGNORECASE).match(message.content):
-            await message.channel.send(f'Greetings, {message.author.display_name}.')
-
-        # Insult handling
-        if re.compile(r".*suck.*duel.?(bot|mach|comp)",
-                      re.IGNORECASE).match(message.content):
-            await message.channel.send(f'An amusing attempt to hurt my algorithmic feelings, meatbag.')
-
         await bot_client.process_commands(message) # after conversations, pass the message to the command handler
 
     @bot_client.event
