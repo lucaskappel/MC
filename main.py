@@ -38,7 +38,7 @@ def run_bot():
     bot_config = load_config()
     bot_client = Bot_Client(
         command_prefix=bot_config["command_prefix"],
-        intents=discord.Intents.all()
+        intents=discord.Intents.default()
     )
 
     @bot_client.event
