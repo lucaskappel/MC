@@ -26,7 +26,7 @@ def load_config():
                 "CHALLONGE_USERNAME": "none",
                 "CHALLONGE_TOKEN": "none",
             }
-            json.dump(bot_config, config_file)  # Set the config to the above template
+            json.dump(bot_config, config_file, sort_keys=True, indent=4)  # Set the config to the above template
             sys.exit()  # User will need to edit the config file and set all the necessary info.
     else:  # Otherwise
         with open(r"config.json", encoding='utf8') as config_file:  # open the existing config
@@ -38,22 +38,26 @@ def run_bot():
     bot_config = load_config()
     bot_client = Bot_Client(
         command_prefix=bot_config["command_prefix"],
-        intents=discord.Intents.default()
+        intents=discord.Intents.default(),
+        activity=discord.Activity(
+            type=discord.ActivityType.listening,
+            name="everybody!"
+        )
     )
 
     @bot_client.event
     async def on_error(event, *args):
+        print('wah')
         with open(f'logs/error_{date.today().strftime("%Y%m%d_%H%M%S")}.log', 'a') as error_file:
             error_file.write(f'{bot_client.user} : Unhandled exception\n{event}\n{args}\n')
 
     @bot_client.event # Sync command string, and insult handling
     async def on_message(message):
         if message.author.bot: return  # Bot should not respond to itself or other bots ;i
-        if message.author.id == int(bot_config["owner_id"]) and 'sync command tree now' in message.content:
+        if message.author.id == int(bot_config["owner_id"]) and 'sync command tree' in message.content:
             await bot_client.tree.sync()
-            await message.channel.send(f"Command sync status: Complete")
-
-        await bot_client.process_commands(message) # after conversations, pass the message to the command handler
+            await message.channel.send(f"Command sync complete!")
+        return
 
     @bot_client.event
     async def on_ready(): print(f'System {bot_client.user} initialized. Beginning guild observation.')
