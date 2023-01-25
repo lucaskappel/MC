@@ -5,15 +5,14 @@ from discord.ext import commands
 from discord import app_commands
 from main import MC_Bot_Client
 
-
-#### #### Static Properties #### ####
+#### #### Statics #### ####
 
 #### #### Class #### ####
 
 
-class Cog_Tournament(commands.Cog):  # Admin/authenticated roles only.
+class Cog_Tournament(commands.Cog):
 
-    #### #### Properties #### ####
+    #### #### Attributes #### ####
 
     bot_client: MC_Bot_Client
 
@@ -73,6 +72,7 @@ class Cog_Tournament(commands.Cog):  # Admin/authenticated roles only.
             view=View_TournamentList(tournament_list)
         )
 
+#### #### End of Class #### ####
 
 #### #### Views #### ####
 
@@ -218,6 +218,7 @@ class View_TournamentList(discord.ui.View):
                             )
                             return
 
+#### #### End of Views #### ####
 
 #### #### Utility #### ####
 
@@ -232,7 +233,7 @@ def create_tournament_embed(tournament_json):
     tournament_embed.thumbnail.url = tournament_json['live_image_url']
     return tournament_embed
 
-#### #### #### ####
+#### #### Setup #### ####
 
 
 async def setup(bot_client: MC_Bot_Client) -> None:
