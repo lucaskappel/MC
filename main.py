@@ -1,3 +1,5 @@
+#### #### Imports #### ####
+
 import json, pathlib, aiohttp
 from datetime import date
 
