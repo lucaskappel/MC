@@ -4,7 +4,9 @@ from datetime import date
 import discord
 from discord.ext import commands
 
-#### #### #### ####
+#### #### Statics #### ####
+
+#### #### Class #### ####
 
 
 class MC_Bot_Client(commands.Bot):
@@ -119,15 +121,15 @@ class MC_Bot_Client(commands.Bot):
         request_response.close()
         return return_request_response
 
-#### #### #### ####
+#### #### End of Class #### ####
+
+#### #### Setup #### ####
 
 
 def run_mc() -> None:
     mc_bot_client = MC_Bot_Client()
     mc_bot_client.run(mc_bot_client.configuration_settings['auth_token'])  # Run the bot.
     return
-
-    #### #### #### ####
 
 
 if __name__ == "__main__": run_mc() # Entry point
