@@ -21,7 +21,7 @@ class MC_Bot_Client(commands.Bot):
 
     def __init__(self) -> None:
 
-        self.configuration_settings = {
+        self.configuration_settings = { # Default template
             'auth_token': 'abcdefghijklmnopqrstuvwxyz.123456.7890-abcdefghijklmnopqrstuvwxyz1234567',
             'owner_id': '183033825108951041', # This is Bard#3883
             'command_prefix': '+',
@@ -57,7 +57,6 @@ class MC_Bot_Client(commands.Bot):
                 name="everybody!"
             )
         )
-
         return
 
     async def setup_hook(self) -> None:
