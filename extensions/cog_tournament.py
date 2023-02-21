@@ -23,7 +23,7 @@ class Cog_Tournament(commands.Cog):
 
     #### #### Slash Commands #### ####
 
-    @app_commands.command(name='create_tournament', description='Create a brand new tournament!')
+    @app_commands.command(name='create_tournament')
     async def create_tournament(
             self,
             interaction: discord.Interaction,
@@ -43,16 +43,18 @@ class Cog_Tournament(commands.Cog):
 
         await interaction.followup.send(
             content='Tournament created!',
-            embed=create_tournament_embed(tournament_json)
+            embed=create_tournament_embed(tournament_json),
+            ephemeral=True
         )
         return
 
-    @app_commands.command(name='list_tournaments', description='List all tournaments available.')
+    @app_commands.checks.has_permissions(view_audit_log=True)
+    @app_commands.command(name='list_tournaments')
     async def list_tournaments(
             self,
             interaction: discord.Interaction
     ) -> None:
-        await interaction.response.defer(thinking=False)  # this could take longer than 3 s
+        await interaction.response.defer(ephemeral=True, thinking=False)  # this could take longer than 3 s
 
         tournament_list = await self.bot_client.api_request(
             method='GET',
@@ -69,7 +71,8 @@ class Cog_Tournament(commands.Cog):
 
         await interaction.followup.send(
             embed=tournament_list_as_an_embed,
-            view=View_TournamentList(tournament_list)
+            view=View_TournamentList(tournament_list),
+            ephemeral=True
         )
 
 #### #### End of Class #### ####
@@ -98,7 +101,7 @@ class Select_TournamentList(discord.ui.Select):
         return
 
     async def callback(self, interaction: discord.Interaction): #4. When a tournament is selected, display it
-        await interaction.response.defer(thinking=False)  # Interactions time out after 3s, so defer it
+        await interaction.response.defer(ephemeral=True, thinking=False)  # Interactions time out after 3s, so defer it
 
         bot_client = interaction.client # type: MC_Bot_Client
         selected_tournament_data = await bot_client.api_request(
@@ -108,7 +111,8 @@ class Select_TournamentList(discord.ui.Select):
 
         await interaction.followup.send(
             embed=create_tournament_embed(selected_tournament_data),
-            view=View_ManageTournament(selected_tournament_data)
+            view=View_ManageTournament(selected_tournament_data),
+            ephemeral=True
         ) #6. Send embed to display the tourney, and show the options for it (start, update, cancel)
         return
 
@@ -129,10 +133,18 @@ class Button_TournamentStart(discord.ui.Button): # TODO
         return
 
     async def callback(self, interaction: discord.Interaction) -> None:
-        self.disabled = True
-        await interaction.response.edit_message(view=self.view)
-        await interaction.followup.send('Feature not yet implemented.')
+        await interaction.response.send_message(
+            content='LISTEN EVERYBODY!!\n\nA tournament is now open for registration!\n',
+            embed=create_tournament_embed(self.tournament_data),
+            view=View_TournamentRegistration(self.tournament_data)
+        )
+        return
 
+
+class View_TournamentRegistration(discord.ui.View):
+    def __init__(self, tournament_data: dict) -> None:
+        super().__init__()
+        self.tournament_data = tournament_data
         return
 
 
@@ -192,40 +204,44 @@ class Button_TournamentCancel(discord.ui.Button):
         return
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=True)  # This could take longer than 3 s.
-
+        self.disabled = True
+        await interaction.response.edit_message(view=self.view)
         await interaction.followup.send(
             content='Delete the following tournament?',
             embed=create_tournament_embed(self.tournament_data),
-            view=self.View_ConfirmTournamentCancel(self.tournament_data)
+            view=View_ConfirmTournamentCancel(self.tournament_data),
+            ephemeral=True
         )
         return
 
-    class View_ConfirmTournamentCancel(discord.ui.View):
-        def __init__(self, tournament_data: dict) -> None:
-            super().__init__()
-            self.add_item(self.Button_ConfirmTournamentCancel(tournament_data))
-            return
 
-        class Button_ConfirmTournamentCancel(discord.ui.Button):
-            def __init__(self, tournament_data: dict) -> None:
-                self.tournament_data = tournament_data
-                super().__init__(label='Confirm', style=discord.ButtonStyle.danger)
-                return
+class View_ConfirmTournamentCancel(discord.ui.View):
+    def __init__(self, tournament_data: dict) -> None:
+        super().__init__()
+        self.add_item(Button_ConfirmTournamentCancel(tournament_data))
+        return
 
-            async def callback(self, interaction: discord.Interaction) -> None:
-                await interaction.response.defer(thinking=True)  # Only get 3s to respond, don't timeout
 
-                bot_client = interaction.client # type: MC_Bot_Client
-                await bot_client.api_request(
-                    method="DELETE",
-                    uri=f'tournaments//{self.tournament_data["tournament"]["id"]}.json'
-                )
+class Button_ConfirmTournamentCancel(discord.ui.Button):
+    def __init__(self, tournament_data: dict) -> None:
+        self.tournament_data = tournament_data
+        super().__init__(label='Confirm', style=discord.ButtonStyle.danger)
+        return
 
-                await interaction.followup.send(
-                    f'<**{self.tournament_data["tournament"]["name"]}**> has been cancelled.'
-                )
-                return
+    async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True, thinking=True)  # Only get 3s to respond, don't timeout
+
+        bot_client = interaction.client # type: MC_Bot_Client
+        await bot_client.api_request(
+            method="DELETE",
+            uri=f'tournaments//{self.tournament_data["tournament"]["id"]}.json'
+        )
+
+        await interaction.followup.send(
+            content=f'<**{self.tournament_data["tournament"]["name"]}**> has been cancelled.'
+        )
+        return
+
 
 #### #### End of Views #### ####
 
